@@ -15,6 +15,9 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole('textbox', { name: 'Email' }).fill('hachiman.hachi8@gmail.com');
   await page.getByRole('textbox', { name: 'Password' }).fill('Yashi0Takuy@');
   await page.getByRole('button').click();
+  const loginResponse = await page.waitForResponse('https://conduit-api.bondaracademy.com/api/users/login');
+  const loginResponseBody = await loginResponse.json();
+  const accessToken = loginResponseBody.user.token;
 });
 
 test('has title', async ({ page }) => {
@@ -86,4 +89,36 @@ test('delete article', async ({ page, request }) => {
   // expect(deleteArticleResponse.status()).toEqual(204);
 
   // console.log(deleteArticleResponse);
+});
+
+test('create article', async ({ page, request }) => {
+  await page.getByText('New Article').click();
+  await page.getByPlaceholder('Article Title').fill('This is a test');
+  await page.getByPlaceholder("What's this article about?").fill('This is a test');
+  await page.getByPlaceholder('Write your article (in markdown)').fill('This is a test');
+  await page.getByText('Publish Article').click();
+  const articleResponse = await page.waitForResponse('https://conduit-api.bondaracademy.com/api/articles/');
+  const responseBody = await articleResponse.json();
+  const articleSlug = responseBody.article.slug;
+  await page.getByText('conduit').first().click();
+
+  await expect(page.locator('app-article-list h1').first()).toContainText('This is a test');
+
+  const loginResponse = await request.post('https://conduit-api.bondaracademy.com/api/users/login', {
+    data: {
+      user: {
+        email: 'hachiman.hachi8@gmail.com',
+        password: 'Yashi0Takuy@',
+      },
+    },
+  });
+  const loginResponseBody = await loginResponse.json();
+  const accessToken = loginResponseBody.user.token;
+
+  const deleteArticleResponse = await request.delete(`https://conduit-api.bondaracademy.com/api/articles/${articleSlug}`, {
+    headers: {
+      authorization: `Token ${accessToken}`,
+    },
+  });
+  expect(deleteArticleResponse.status()).toEqual(204);
 });

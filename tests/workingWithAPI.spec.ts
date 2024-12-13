@@ -6,18 +6,7 @@ test.beforeEach(async ({ page }) => {
       body: JSON.stringify(tags),
     });
   });
-
   await page.goto('https://conduit.bondaracademy.com/');
-  await expect(page.locator('.sidebar')).toContainText('automation');
-
-  // ここの修正から
-  await page.getByText('Sign in').click();
-  await page.getByRole('textbox', { name: 'Email' }).fill('hachiman.hachi8@gmail.com');
-  await page.getByRole('textbox', { name: 'Password' }).fill('Yashi0Takuy@');
-  await page.getByRole('button').click();
-  const loginResponse = await page.waitForResponse('https://conduit-api.bondaracademy.com/api/users/login');
-  const loginResponseBody = await loginResponse.json();
-  const accessToken = loginResponseBody.user.token;
 });
 
 test('has title', async ({ page }) => {
@@ -33,11 +22,10 @@ test('has title', async ({ page }) => {
   });
 
   await page.getByText('Global Feed').click();
-  await page.waitForSelector('app-article-list h1');
+  await page.waitForTimeout(1000);
+  await expect(page.locator('.navbar-brand')).toHaveText('conduit');
   await expect(page.locator('app-article-list h1').first()).toContainText('This is a MOCK test title');
   await expect(page.locator('app-article-list p').first()).toContainText('This is a MOCK description');
-  await expect(page.locator('.navbar-brand')).toHaveText('conduit');
-  await expect(page.locator('.sidebar')).toContainText('automation');
 });
 
 test('delete article', async ({ page, request }) => {

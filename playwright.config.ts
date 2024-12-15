@@ -30,6 +30,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    extraHTTPHeaders: {
+      Authorization: `Token ${process.env.ACCESS_TOKEN}`,
+    },
   },
 
   /* Configure projects for major browsers */
@@ -40,7 +43,7 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'], storageState: '.auth/user.json' }, // 認証状態を読み込むファイル
-      dependencies: ['setup'],
+      dependencies: ['setup'], // setupを実行してからchromiumを実行
     },
 
     {
